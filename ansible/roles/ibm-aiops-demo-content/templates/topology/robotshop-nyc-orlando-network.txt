@@ -1,0 +1,88 @@
+# RobotShop Topology - NYC to Orlando Network Architecture
+# Scenario: Catalog and Ratings services in separate network accessing SQL DB through network infrastructure
+# Network Path: NYC -> Fiber Optic -> Orlando with routers and switches
+
+# ============================================
+# ROBOTSHOP APPLICATION SERVICES
+# ============================================
+
+# Web Service (NYC)
+V:{"_operation":"InsertReplace","businessCriticality": "Gold","app": "robotshop","availableReplicas": 1,"createdReplicas": 1,"dataCenter": "NYC-DC1","desiredReplicas": 1, "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes": ["deployment"],"mergeTokens": ["web"],"matchTokens": ["web-deployment","web-synthetic","web-instana","web-robotshop"],"name": "web","namespace": "robot-shop","readyReplicas": 1,"tags": ["app:robotshop","namespace:robot-shop"],"vertexType": "resource","uniqueId": "web-id","_references": [{"_edgeType": "calls","_toUniqueId": "catalogue-id"},{"_edgeType": "calls","_toUniqueId": "ratings-id"},{"_edgeType": "runsOn","_toUniqueId": "NYC-K8S-CLUSTER"}]}
+
+# Catalogue Service (NYC - Separate Network)
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","app": "robotshop","availableReplicas": 1,"createdReplicas": 1,"dataCenter": "NYC-DC1","desiredReplicas": 1, "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes": ["deployment"],"mergeTokens": ["catalogue"],"matchTokens": ["catalogue-deployment","catalogue-log","catalogue-robotshop"],"name": "catalogue","namespace": "robot-shop","readyReplicas": 1,"tags": ["app:robotshop","namespace:robot-shop","network:catalogue-net"],"vertexType": "resource","uniqueId": "catalogue-id","_references": [{"_edgeType": "calls","_toUniqueId": "ratings-id"},{"_edgeType": "runsOn","_toUniqueId": "NYC-CATALOGUE-VM"},{"_edgeType": "exposedBy","_toUniqueId": "NYC-CATALOGUE-NET-PORT"}]}
+
+# Ratings Service (NYC - Separate Network)
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","app": "robotshop","availableReplicas": 1,"createdReplicas": 1,"dataCenter": "NYC-DC1","desiredReplicas": 1, "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes": ["deployment"],"mergeTokens": ["ratings"],"matchTokens": ["ratings-deployment","ratings-log","ratings-predictive","ratings-robotshop"],"name": "ratings","namespace": "robot-shop","readyReplicas": 1,"tags": ["app:robotshop","namespace:robot-shop","network:ratings-net"],"vertexType": "resource","uniqueId": "ratings-id","_references": [{"_edgeType": "accesses","_toUniqueId": "mysql-db"},{"_edgeType": "runsOn","_toUniqueId": "NYC-RATINGS-VM"},{"_edgeType": "exposedBy","_toUniqueId": "NYC-RATINGS-NET-PORT"}]}
+
+# ============================================
+# NYC INFRASTRUCTURE
+# ============================================
+
+# NYC Kubernetes Cluster
+V:{"_operation":"InsertReplace","status":"ready", "dataCenter": "NYC-DC1","namespace": "robot-shop",  "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes": ["cluster"],  "matchTokens": ["NYC-K8S-CLUSTER"],  "name": "K8s Cluster NYC-PROD-001",  "tags": ["app:robotshop","namespace:robot-shop","location:nyc"],  "vertexType": "resource",  "uniqueId": "NYC-K8S-CLUSTER"}
+
+# NYC Catalogue VM
+V:{"_operation":"InsertReplace","status":"running", "dataCenter": "NYC-DC1", "namespace": "robot-shop","architecture": "x86_64",  "cpuName": "NYC-VM-CAT-001-cpu",   "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes": ["vm"],  "hypervisor": "vsphere","mergeTokens": ["robot-shop-catalogue-vm"],  "matchTokens": ["NYC-VM-CAT-001"],  "monitoring-state": "enabled",  "name": "VM NYC-CATALOGUE-001",  "privateDnsName": "nyc-cat-vm-001.internal",  "privateIpAddress": "10.10.1.50",  "tags": ["app:robotshop","namespace:robot-shop","service:catalogue"],  "uniqueId": "NYC-CATALOGUE-VM",  "vertexType": "resource",  "virtualizationType": "vsphere","_references": [{"_edgeType": "runsOn","_toUniqueId": "NYC-BAREMETAL-001"},{"_edgeType": "dependsOn","_toUniqueId": "NYC-SWITCH-001"}]}
+
+# NYC Ratings VM
+V:{"_operation":"InsertReplace","status":"running", "dataCenter": "NYC-DC1", "namespace": "robot-shop","architecture": "x86_64",  "cpuName": "NYC-VM-RAT-001-cpu",   "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes": ["vm"],  "hypervisor": "vsphere","mergeTokens": ["robot-shop-ratings-vm"],  "matchTokens": ["NYC-VM-RAT-001"],  "monitoring-state": "enabled",  "name": "VM NYC-RATINGS-001",  "privateDnsName": "nyc-rat-vm-001.internal",  "privateIpAddress": "10.10.1.51",  "tags": ["app:robotshop","namespace:robot-shop","service:ratings"],  "uniqueId": "NYC-RATINGS-VM",  "vertexType": "resource",  "virtualizationType": "vsphere","_references": [{"_edgeType": "runsOn","_toUniqueId": "NYC-BAREMETAL-001"},{"_edgeType": "dependsOn","_toUniqueId": "NYC-SWITCH-001"}]}
+
+# NYC Baremetal Server
+V:{"_operation":"InsertReplace","status":"available", "dataCenter": "NYC-DC1", "namespace": "robot-shop","architecture": "x86_64",  "cpuName": "NYC-BAREMETAL-001-cpu",   "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes": ["server"],  "hypervisor": "vsphere",  "matchTokens": ["NYC-BAREMETAL-001"],  "monitoring-state": "enabled",  "name": "Baremetal NYC-DELL-R750-001",  "privateDnsName": "nyc-bare-001.internal",  "privateIpAddress": "10.10.1.10",  "tags": ["app:robotshop","namespace:robot-shop","location:nyc"],  "uniqueId": "NYC-BAREMETAL-001",  "vertexType": "resource",  "virtualizationType": "vsphere"}
+
+# NYC Network Switch
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","uniqueId":"NYC-SWITCH-001","namespace": "robot-shop","matchTokens": ["NYC-SWITCH-001"],"tags":["Network Topology","app:robotshop","namespace:robot-shop","location:nyc"],"name":"NYC-Switch-Cisco-001", "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes":["switch"],"_references": [{"_edgeType": "dependsOn","_toUniqueId": "NYC-ROUTER-001"}]}
+
+# NYC Catalogue Network Port
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","uniqueId":"NYC-CATALOGUE-NET-PORT","namespace": "robot-shop","mergeTokens": ["NYC-CATALOGUE-NET-PORT"],"matchTokens": ["NYC-CATALOGUE-NET-PORT"],"tags":["Network Topology","app:robotshop","namespace:robot-shop"],"name":"NYC Switch Port - Catalogue", "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes":["networkinterface"],"_references": [{"_edgeType": "dependsOn","_toUniqueId": "NYC-SWITCH-001"}]}
+
+# NYC Ratings Network Port
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","uniqueId":"NYC-RATINGS-NET-PORT","namespace": "robot-shop","mergeTokens": ["NYC-RATINGS-NET-PORT"],"matchTokens": ["NYC-RATINGS-NET-PORT"],"tags":["Network Topology","app:robotshop","namespace:robot-shop"],"name":"NYC Switch Port - Ratings", "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes":["networkinterface"],"_references": [{"_edgeType": "dependsOn","_toUniqueId": "NYC-SWITCH-001"}]}
+
+# NYC Core Router
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","uniqueId":"NYC-ROUTER-001","namespace": "robot-shop","matchTokens": ["NYC-ROUTER-001"],"tags":["Network Topology","app:robotshop","namespace:robot-shop","location:nyc"],"name":"NYC-Core-Router-001", "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}}, "entityTypes":["router"],"_references": [{"_edgeType": "connectedTo","_toUniqueId": "NYC-FIBER-DEVICE"}]}
+
+# ============================================
+# FIBER OPTIC NETWORK (NYC TO ORLANDO)
+# ============================================
+
+# NYC Fiber Optic Device
+V:{"namespace": "robot-shop", "_operation": "InsertUpdate", "tags":["Optical Network","app:robotshop", "namespace:robot-shop","demo:nyc-orlando-fiber"],"appgroup":"robotshop", "city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}},"uniqueId": "NYC-FIBER-DEVICE", "fromFile":"true", "entityTypes": ["fiberDevice"], "name": "NYC Fiber Device FD-NYC-001", "_references": [], "Equipment": "3HE00104AA", "EquipmentName": "7750 SR-12 CHASSIS", "Floor": "01", "Frame": "2506", "Location": "NYC-DC1", "Manufacturer": "Nokia Inc.", "ShelfID": "7750-NYC-01", "TerminalID": "NYC-FD-001","matchTokens":["entityid.NYC-FD-001","nyc-fiber-device"]}
+
+# NYC Fiber Port 1
+V:{"namespace": "robot-shop", "_operation": "InsertUpdate", "appgroup":"robotshop","city":"New York", "area": "Manhattan", "geolocation": {"geometry": {"coordinates": [-73.97721,40.74505],"type": "Point"}},"uniqueId": "NYC-FIBER-PORT-1", "fromFile":"true", "entityTypes": ["fiberPort"], "name": "NYC Fiber Port 10/1/1", "_references": [{"_edgeType":"connectedTo", "_toUniqueId":"NYC-FIBER-CONNECTION"}, {"_edgeType": "contains", "_fromUniqueId": "NYC-FIBER-DEVICE"}, {"_edgeType": "partOf", "_toUniqueId": "NYC-FIBER-DEVICE"}], "Port": "10/1/1", "circuit_vision": "NYC-ORL-FIBER-001", "customer_Name": "RobotShop Inc.", "connected_by": "fiber","connection_path":"['NYC-FIBER-DEVICE', 'NYC-FIBER-CONNECTION', 'ORL-FIBER-CONNECTION', 'ORL-FIBER-DEVICE']","tags": ["Optical Network","app:robotshop", "namespace:robot-shop","demo:nyc-orlando-fiber"],"matchTokens":["entityid.NYC-FIBER-PORT-1","nyc-fiber-port-1"]}
+
+# NYC to Orlando Fiber Connection
+V:{"namespace": "robot-shop", "_operation": "InsertUpdate", "availability":"OK", "tags":["Optical Network","app:robotshop", "namespace:robot-shop","demo:nyc-orlando-fiber"],"appgroup":"robotshop","city":"In Transit", "area": "Fiber Cable", "geolocation": {"geometry": {"coordinates": [-77.5,37.5],"type": "Point"}},"uniqueId": "NYC-FIBER-CONNECTION", "fromFile":"true", "entityTypes": ["fiberConnection"], "name": "NYC-Orlando Fiber Link",  "Equipment": "FC9565US30", "EquipmentName": "FW9500 HDS SH", "Floor": "N/A", "Frame": "N/A", "Location": "NYC-ORL-ROUTE", "Manufacturer": "Corning", "ShelfID": "27345-NYC-ORL", "TerminalID": "NYC-ORL-FIBER","matchTokens":["entityid.NYC-ORL-FIBER","nyc-orl-fiber"],"_references": [{"_edgeType":"fiberLink", "_toUniqueId":"ORL-FIBER-CONNECTION"}]}
+
+# Orlando Fiber Connection
+V:{"namespace": "robot-shop", "_operation": "InsertUpdate", "availability":"OK", "tags":["Optical Network","app:robotshop", "namespace:robot-shop","demo:nyc-orlando-fiber"],"appgroup":"robotshop","city":"Orlando", "area": "Downtown", "geolocation": { "geometry": { "coordinates": [-81.37924,28.53834],"type": "Point"}},           "uniqueId": "ORL-FIBER-CONNECTION","fromFile":"true", "entityTypes": ["fiberConnection"], "name": "Orlando Fiber Link", "Equipment": "FC9565US30", "EquipmentName": "FW9500 HDS SH", "Floor": "01", "Frame": "109.07", "Location": "ORL-DC1", "Manufacturer": "Corning", "ShelfID": "27344-ORL", "TerminalID": "ORL-FIBER","matchTokens":["entityid.ORL-FIBER","orl-fiber"],"_references": []}
+
+# Orlando Fiber Optic Device
+V:{"namespace": "robot-shop", "_operation": "InsertUpdate",  "tags":["Optical Network","app:robotshop", "namespace:robot-shop","demo:nyc-orlando-fiber"],"appgroup":"robotshop","city":"Orlando", "area": "Downtown", "geolocation": { "geometry": { "coordinates": [-81.37924,28.53834],"type": "Point"}},"uniqueId": "ORL-FIBER-DEVICE", "fromFile":"true", "entityTypes": ["fiberDevice"], "name": "Orlando Fiber Device FD-ORL-001", "_references": [], "Equipment": "3HE07112AA", "EquipmentName": "7950 XRS-20 SHELF", "Floor": "01", "Frame": "1905", "Location": "ORL-DC1", "Manufacturer": "Nokia Inc.", "ShelfID": "7950-ORL-01", "TerminalID": "ORL-FD-001","matchTokens":["entityid.ORL-FD-001","orl-fiber-device"]}
+
+# Orlando Fiber Port 1
+V:{"namespace": "robot-shop", "_operation": "InsertUpdate",  "appgroup":"robotshop","city":"Orlando", "area": "Downtown", "geolocation": { "geometry": { "coordinates": [-81.37924,28.53834],"type": "Point"}},"uniqueId": "ORL-FIBER-PORT-1", "fromFile":"true", "entityTypes": ["fiberPort"], "name": "Orlando Fiber Port 1/1/22", "_references": [{"_edgeType":"connectedTo", "_toUniqueId":"ORL-FIBER-CONNECTION"}, {"_edgeType": "contains", "_fromUniqueId": "ORL-FIBER-DEVICE"}, {"_edgeType": "partOf", "_toUniqueId": "ORL-FIBER-DEVICE"}], "Port": "1/1/22", "circuit_vision": "NYC-ORL-FIBER-001", "customer_Name": "RobotShop Inc.", "connected_by": "fiber","connection_path":"['NYC-FIBER-DEVICE', 'NYC-FIBER-CONNECTION', 'ORL-FIBER-CONNECTION', 'ORL-FIBER-DEVICE']","tags": ["Optical Network","app:robotshop", "namespace:robot-shop","demo:nyc-orlando-fiber"],"matchTokens":["entityid.ORL-FIBER-PORT-1","orl-fiber-port-1"]}
+
+# ============================================
+# ORLANDO INFRASTRUCTURE
+# ============================================
+
+# Orlando Core Router
+V:{"namespace": "robot-shop", "_operation":"InsertReplace","businessCriticality": "Platinum","uniqueId":"ORL-ROUTER-001","namespace": "robot-shop","matchTokens": ["ORL-ROUTER-001"],"tags":["Network Topology","app:robotshop","namespace:robot-shop","location:orlando"],"name":"Orlando-Core-Router-001", "_references": [{"_edgeType":"connectedTo", "_toUniqueId":"ORL-FIBER-DEVICE"}], "city":"Orlando", "area": "Downtown", "geolocation": {"geometry": {"coordinates": [-81.37924,28.53834],"type": "Point"}}, "entityTypes":["router"],"_references": [{"_edgeType": "dependsOn","_toUniqueId": "ORL-SWITCH-001"}]}
+
+# Orlando Network Switch (Critical - connects to SQL DB)
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","uniqueId":"ORL-SWITCH-001","namespace": "robot-shop","matchTokens": ["ORL-SWITCH-001"],"tags":["Network Topology","app:robotshop","namespace:robot-shop","location:orlando","critical:sql-db"],"name":"Orlando-Switch-Cisco-DB-001","_references": [{"_toUniqueId":"ORL-ROUTER-001","_edgeType":"dependsOn"}], "city":"Orlando", "area": "Downtown", "geolocation": {"geometry": {"coordinates": [-81.37924,28.53834],"type": "Point"}}, "entityTypes":["switch"]}
+
+# Orlando SQL DB Switch Port (CRITICAL - This is where saturation occurs)
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","uniqueId":"ORL-SQL-SWITCH-PORT","namespace": "robot-shop","mergeTokens": ["ORL-SQL-SWITCH-PORT","mysql-mysql"],"matchTokens": ["ORL-SQL-SWITCH-PORT"],"tags":["Network Topology","app:robotshop","namespace:robot-shop","critical:sql-db-port"],"name":"Orlando Switch Port - SQL DB", "city":"Orlando", "area": "Downtown", "geolocation": {"geometry": {"coordinates": [-81.37924,28.53834],"type": "Point"}}, "entityTypes":["networkinterface"], "_references": [{"_toUniqueId":"ORL-SWITCH-001","_edgeType":"dependsOn"}]}
+
+# Orlando SQL DB VM
+V:{"_operation":"InsertReplace","status":"running", "dataCenter": "ORL-DC1", "namespace": "robot-shop","architecture": "x86_64",  "cpuName": "ORL-VM-SQL-001-cpu",   "city":"Orlando", "area": "Downtown", "geolocation": {"geometry": {"coordinates": [-81.37924,28.53834],"type": "Point"}}, "entityTypes": ["vm"],  "hypervisor": "vsphere","mergeTokens": ["robot-shop-mysql-vm"],  "matchTokens": ["ORL-VM-SQL-001"],  "monitoring-state": "enabled",  "name": "VM ORL-SQL-DB-001",  "privateDnsName": "orl-sql-vm-001.internal",  "privateIpAddress": "10.20.1.100",  "tags": ["app:robotshop","namespace:robot-shop","service:mysql","location:orlando"],  "uniqueId": "ORL-SQL-VM",  "vertexType": "resource",  "virtualizationType": "vsphere","_references": [{"_edgeType": "runsOn","_toUniqueId": "ORL-BAREMETAL-001"},{"_edgeType": "dependsOn","_toUniqueId": "ORL-SWITCH-001"}]}
+
+# Orlando Baremetal Server
+V:{"_operation":"InsertReplace","status":"available", "dataCenter": "ORL-DC1", "namespace": "robot-shop","architecture": "x86_64",  "cpuName": "ORL-BAREMETAL-001-cpu",   "city":"Orlando", "area": "Downtown", "geolocation": {"geometry": {"coordinates": [-81.37924,28.53834],"type": "Point"}}, "entityTypes": ["server"],  "hypervisor": "vsphere",  "matchTokens": ["ORL-BAREMETAL-001"],  "monitoring-state": "enabled",  "name": "Baremetal ORL-DELL-R750-001",  "privateDnsName": "orl-bare-001.internal",  "privateIpAddress": "10.20.1.10",  "tags": ["app:robotshop","namespace:robot-shop","location:orlando"],  "uniqueId": "ORL-BAREMETAL-001",  "vertexType": "resource",  "virtualizationType": "vsphere"}
+
+# MySQL Database (Orlando)
+V:{"_operation":"InsertReplace","businessCriticality": "Platinum","app": "robotshop","dataCenter": "ORL-DC1", "city":"Orlando", "area": "Downtown", "geolocation": {"geometry": {"coordinates": [-81.37924,28.53834],"type": "Point"}}, "entityTypes": ["database"],"mergeTokens": ["mysql","mysql-db"],"matchTokens": ["mysql-db","mysql-deployment","mysql-github","mysql-instana","mysql-security","mysql-predictive","mysql-turbonomic","mysql-robotshop"],"name": "mysql", "innodb_buffer_pool_size": "8GB","last_change_by": "DBA Team", "tags": ["app:robotshop","namespace:robot-shop","location:orlando"],"vertexType": "resource","uniqueId": "mysql-db", "_references": [{"_toUniqueId":"ORL-SQL-VM","_edgeType":"runsOn"},{"_toUniqueId":"ORL-SQL-SWITCH-PORT","_edgeType":"exposedBy"}]}
