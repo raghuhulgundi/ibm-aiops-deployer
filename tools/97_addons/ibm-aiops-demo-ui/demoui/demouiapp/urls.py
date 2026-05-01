@@ -23,6 +23,7 @@ urlpatterns = [
     path('injectAllFanACMEREST', views.injectAllFanACMEREST, name='injectAllFanACMEREST'),
     path('injectAllNetSOCKREST', views.injectAllNetSOCKREST, name='injectAllNetSOCKREST'),
     path('injectAllTUBEREST', views.injectAllTUBEREST, name='injectAllTUBEREST'),
+    path('injectEventsNycOrlando', views.injectEventsNycOrlandoView, name='injectEventsNycOrlando'),
     path('injectAllTELCOREST', views.injectAllTELCOREST, name='injectAllTELCOREST'),
     path('injectBusy', views.injectBusy, name='injectBusy'),
     path('injectRisk', views.injectRisk, name='injectRisk'),
